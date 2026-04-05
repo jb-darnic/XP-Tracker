@@ -1,3 +1,0 @@
-if(typeof __WEBPACK_EXTERNAL_MODULE__258__ === 'undefined') { var e = new Error("Cannot find module 'electron/common'"); e.code = 'MODULE_NOT_FOUND'; throw e; }
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__258__;
