@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="icon" href="infoicon.png" type="image/png" />
+	<link rel="stylesheet" type="text/css" href="/runeappslib.css"/>
+	<link rel="stylesheet" type="text/css" href="/nis/nis.css"/>
+	<link rel="stylesheet" type="text/css" href="/nis/alt1-currentskin/skinstyle.css"/>
+	<script type="text/javascript" src="/runeappslib.js"></script>
+	<script type="text/javascript" src="/alt1lib.js"></script>
+	<script type="text/javascript" src="/imagedetect.js"></script>
+	<script type="text/javascript" src="xpcounter.bundle.js"></script>
+	<script type="text/javascript" src="newscripts.js"></script>
+	<style type="text/css">
+		:root{
+			--bg-top:#182330;
+			--bg-mid:#10161f;
+			--bg-bottom:#0a0f16;
+			--surface-0:rgba(8,12,17,0.72);
+			--surface-1:rgba(18,26,36,0.94);
+			--surface-2:rgba(23,33,46,0.96);
+			--line-soft:rgba(255,255,255,0.08);
+			--line-strong:rgba(230,195,106,0.26);
+			--text-strong:#f4efe5;
+			--text-main:#d3d0c9;
+			--text-muted:#99a3ad;
+			--gold:#e6c36a;
+			--gold-soft:#f3d88a;
+			--teal:#75cfc8;
+			--warn:#ef9a68;
+			--danger:#ef6f6d;
+			--shadow:0 18px 42px rgba(0,0,0,0.34);
+		}
+
+		*{box-sizing:border-box;}
+		html, body{margin:0; width:100%; height:100%; overflow:hidden;}
+		body{
+			font-family:"Segoe UI Variable Text","Trebuchet MS",sans-serif;
+			color:var(--text-main);
+			background:
+				radial-gradient(circle at top left, rgba(230,195,106,0.16), transparent 32%),
+				radial-gradient(circle at top right, rgba(117,207,200,0.11), transparent 28%),
+				linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 42%, var(--bg-bottom) 100%);
+		}
+		body::before{
+			content:"";
+			position:fixed;
+			inset:0;
+			pointer-events:none;
+			background:
+				linear-gradient(135deg, rgba(255,255,255,0.02), transparent 28%),
+				repeating-linear-gradient(180deg, rgba(255,255,255,0.014) 0px, rgba(255,255,255,0.014) 1px, transparent 1px, transparent 18px);
+			opacity:0.55;
+		}
+
+		#appshell{
+			position:relative;
+			display:flex;
+			flex-direction:column;
+			gap:10px;
+			height:100%;
+			padding:12px;
+			animation:panel-enter 0.45s ease-out;
+		}
+
+		@keyframes panel-enter{
+			from{opacity:0; transform:translateY(8px);}
+			to{opacity:1; transform:translateY(0);}
+		}
+
+		#topbar{
+			display:flex;
+			align-items:flex-start;
+			justify-content:space-between;
+			gap:12px;
+		}
+
+		#brandblock{
+			flex:1;
+			min-width:0;
+		}
+
+		#eyebrow{
+			margin:0 0 8px 4px;
+			color:var(--text-muted);
+			font-size:11px;
+			letter-spacing:0.22em;
+			text-transform:uppercase;
+		}
+
+		#xpoutputinner{
+			position:relative;
+			display:flex;
+			align-items:center;
+			justify-content:space-between;
+			gap:16px;
+			min-height:74px;
+			padding:14px 16px;
+			border:1px solid var(--line-soft);
+			border-radius:20px;
+			background:linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+			box-shadow:var(--shadow);
+			cursor:pointer;
+			overflow:visible;
+			transition:transform 0.18s ease, border-color 0.18s ease, box-shadow 0.22s ease, background 0.22s ease;
+		}
+
+		#xpoutputinner:hover{
+			transform:translateY(-1px);
+			border-color:rgba(230,195,106,0.3);
+		}
+
+		#xpoutputinner.active{
+			border-color:rgba(230,195,106,0.4);
+			box-shadow:0 22px 54px rgba(0,0,0,0.42);
+		}
+
+		#skilllead{
+			display:flex;
+			align-items:center;
+			gap:14px;
+			min-width:0;
+		}
+
+		#xpskillicon{
+			width:28px;
+			height:28px;
+			display:inline-block;
+			flex:0 0 auto;
+			background-image:url('skillicons.png');
+			background-position:0px 28px;
+			border-radius:9px;
+			background-color:rgba(0,0,0,0.38);
+			box-shadow:0 0 0 6px rgba(255,255,255,0.02), inset 0 0 0 1px rgba(255,255,255,0.06);
+		}
+
+		#skillcopy{
+			display:flex;
+			flex-direction:column;
+			gap:4px;
+			min-width:0;
+		}
+
+		#selectedskill{
+			color:var(--text-muted);
+			font-size:11px;
+			letter-spacing:0.18em;
+			text-transform:uppercase;
+			white-space:nowrap;
+			overflow:hidden;
+			text-overflow:ellipsis;
+		}
+
+		#xpoutput{
+			display:block;
+			color:var(--text-strong);
+			font-family:"Bahnschrift","Segoe UI Variable Display",sans-serif;
+			font-size:30px;
+			font-variant-numeric:tabular-nums;
+			font-weight:600;
+			letter-spacing:0.03em;
+			line-height:1;
+			text-shadow:0 0 24px rgba(230,195,106,0.1);
+			transition:color 0.2s ease;
+		}
+
+		#headerchips{
+			display:flex;
+			flex-wrap:wrap;
+			justify-content:flex-end;
+			gap:8px;
+		}
+
+		.panelpill{
+			display:inline-flex;
+			align-items:center;
+			justify-content:center;
+			padding:7px 11px;
+			border-radius:999px;
+			border:1px solid rgba(255,255,255,0.08);
+			background:rgba(255,255,255,0.04);
+			color:var(--text-main);
+			font-size:11px;
+			font-weight:600;
+			letter-spacing:0.12em;
+			text-transform:uppercase;
+		}
+
+		.panelpill.ready{
+			border-color:rgba(117,207,200,0.18);
+			background:rgba(117,207,200,0.08);
+			color:#c8f0eb;
+		}
+
+		.panelpill.searching{
+			border-color:rgba(230,195,106,0.2);
+			background:rgba(230,195,106,0.08);
+			color:var(--gold-soft);
+		}
+
+		.panelpill.warning{
+			border-color:rgba(239,154,104,0.22);
+			background:rgba(239,154,104,0.08);
+			color:#ffd2b2;
+		}
+
+		.panelpill.alert{
+			border-color:rgba(239,111,109,0.24);
+			background:rgba(239,111,109,0.09);
+			color:#ffd1cf;
+		}
+
+		.panelpill.subtle{
+			background:rgba(255,255,255,0.03);
+			color:var(--text-muted);
+		}
+
+		#xpdropdown{
+			position:absolute;
+			top:calc(100% + 10px);
+			left:0;
+			right:0;
+			padding:10px;
+			border-radius:18px;
+			border:1px solid rgba(255,255,255,0.08);
+			background:linear-gradient(180deg, rgba(20,30,41,0.98) 0%, rgba(10,16,23,0.98) 100%);
+			box-shadow:0 18px 44px rgba(0,0,0,0.42);
+			opacity:0;
+			pointer-events:none;
+			transform:translateY(-8px);
+			transition:opacity 0.18s ease, transform 0.18s ease;
+			overflow:auto;
+			z-index:12;
+		}
+
+		#xpoutputinner.active #xpdropdown{
+			opacity:1;
+			pointer-events:auto;
+			transform:translateY(0);
+		}
+
+		.xpdropdownopt{
+			display:flex;
+			align-items:center;
+			justify-content:space-between;
+			gap:12px;
+			padding:10px 12px;
+			border-radius:14px;
+			font-size:15px;
+			transition:background 0.18s ease, transform 0.18s ease;
+		}
+
+		.xpdropdownopt:hover{
+			background:rgba(255,255,255,0.05);
+			transform:translateX(2px);
+		}
+
+		.xpdropdownleft{
+			display:flex;
+			align-items:center;
+			gap:10px;
+			min-width:0;
+		}
+
+		.xpdropdownimg{
+			width:20px;
+			height:20px;
+			display:inline-block;
+			flex:0 0 auto;
+			background:url('skillicons.png');
+			background-size:20px;
+			background-position:0px 28px;
+			border-radius:7px;
+			background-color:rgba(255,255,255,0.04);
+		}
+
+		.xpdropdownname{
+			color:var(--text-strong);
+			white-space:nowrap;
+			overflow:hidden;
+			text-overflow:ellipsis;
+		}
+
+		.xpdropdownrate{
+			color:var(--text-muted);
+			font-family:"Bahnschrift","Segoe UI Variable Display",sans-serif;
+			font-variant-numeric:tabular-nums;
+			white-space:nowrap;
+		}
+
+		#toolbar{
+			display:flex;
+			align-items:center;
+			gap:8px;
+			flex-wrap:wrap;
+		}
+
+		.toolbutton{
+			display:inline-flex;
+			align-items:center;
+			gap:8px;
+			padding:10px 12px;
+			border-radius:16px;
+			border:1px solid var(--line-soft);
+			background:var(--surface-0);
+			color:var(--text-main);
+			cursor:pointer;
+			transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+		}
+
+		.toolbutton:hover{
+			transform:translateY(-1px);
+			border-color:rgba(230,195,106,0.28);
+			background:rgba(20,29,39,0.9);
+		}
+
+		.toolbutton.active{
+			border-color:rgba(230,195,106,0.42);
+			background:rgba(230,195,106,0.08);
+			color:var(--gold-soft);
+		}
+
+		.toolbutton.hidden{
+			opacity:0.35;
+			pointer-events:none;
+		}
+
+		.toolicon{
+			width:14px;
+			height:14px;
+			display:inline-block;
+			background-repeat:no-repeat;
+			background-position:0px 0px;
+		}
+
+		#menubutton .toolicon{background-image:url('settingscog.png');}
+		#infobutton .toolicon{background-image:url('infoicon.png');}
+		#breakbutton .toolicon{background-image:url('listicon.png');}
+		#breakdowncancel .toolicon{background-image:url('cancelicon.png');}
+
+		.tooltext{
+			font-size:11px;
+			letter-spacing:0.16em;
+			text-transform:uppercase;
+			white-space:nowrap;
+		}
+
+		#summarybar{
+			display:grid;
+			grid-template-columns:repeat(4, minmax(0, 1fr));
+			gap:10px;
+		}
+
+		.summaryitem{
+			display:flex;
+			flex-direction:column;
+			gap:6px;
+			padding:12px 14px;
+			border-radius:18px;
+			border:1px solid rgba(255,255,255,0.06);
+			background:rgba(7,11,16,0.64);
+			box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);
+			min-width:0;
+		}
+
+		.summarylabel{
+			color:var(--text-muted);
+			font-size:10px;
+			letter-spacing:0.18em;
+			text-transform:uppercase;
+		}
+
+		.summaryvalue, #timer{
+			color:var(--text-strong);
+			font-family:"Bahnschrift","Segoe UI Variable Display",sans-serif;
+			font-size:18px;
+			font-variant-numeric:tabular-nums;
+			line-height:1.05;
+		}
+
+		#timer{
+			cursor:pointer;
+			transition:color 0.18s ease;
+		}
+
+		#timer:hover{color:var(--gold-soft);}
+
+		#trackedxp.hidden{
+			opacity:0.65;
+			color:var(--text-muted);
+		}
+
+		#alertdeck{
+			display:flex;
+			flex-direction:column;
+			gap:8px;
+			padding:4px 4px 0;
+		}
+
+		#alertcopy{
+			display:flex;
+			align-items:center;
+			justify-content:space-between;
+			gap:12px;
+		}
+
+		#alerttitle{
+			color:var(--text-muted);
+			font-size:11px;
+			letter-spacing:0.18em;
+			text-transform:uppercase;
+		}
+
+		#alertcaption{
+			color:var(--text-muted);
+			font-size:12px;
+		}
+
+		#sliderlabels{
+			display:flex;
+			justify-content:space-between;
+			color:var(--text-muted);
+			font-size:11px;
+			padding:0 2px;
+		}
+
+		#timerslidercontainer{
+			position:relative;
+			height:16px;
+			border-radius:999px;
+			border:1px solid rgba(255,255,255,0.08);
+			background:
+				linear-gradient(90deg, rgba(239,111,109,0.2) 0%, rgba(230,195,106,0.18) 52%, rgba(117,207,200,0.22) 100%),
+				rgba(255,255,255,0.02);
+			box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+		}
+
+		#timerslider{
+			position:absolute;
+			top:50%;
+			left:100%;
+			width:18px;
+			height:18px;
+			margin-left:-9px;
+			margin-top:-9px;
+			border-radius:50%;
+			border:1px solid rgba(255,255,255,0.2);
+			background:rgba(7,11,16,0.9);
+			box-shadow:0 8px 18px rgba(0,0,0,0.35);
+			cursor:ew-resize;
+			transition:transform 0.18s ease, border-color 0.18s ease;
+		}
+
+		#timerslider:hover{
+			transform:scale(1.04);
+			border-color:rgba(230,195,106,0.4);
+		}
+
+		#timersliderinner{
+			position:absolute;
+			inset:4px;
+			border-radius:50%;
+			background:var(--gold-soft);
+			box-shadow:0 0 12px rgba(230,195,106,0.4);
+		}
+
+		#workspace{
+			display:flex;
+			flex:1;
+			min-height:0;
+		}
+
+		#cnvcontainer{
+			display:flex;
+			flex:1;
+			flex-direction:column;
+			min-height:0;
+			padding:14px 14px 0;
+			border-radius:24px;
+			border:1px solid var(--line-soft);
+			background:linear-gradient(180deg, rgba(20,29,39,0.96) 0%, rgba(9,14,20,0.98) 100%);
+			box-shadow:var(--shadow);
+			overflow:hidden;
+		}
+
+		#graphhead{
+			display:flex;
+			flex-direction:column;
+			gap:4px;
+			padding-bottom:10px;
+		}
+
+		#graphkicker{
+			color:var(--text-muted);
+			font-size:11px;
+			letter-spacing:0.18em;
+			text-transform:uppercase;
+		}
+
+		#graphsubtitle{
+			color:var(--text-main);
+			font-size:13px;
+		}
+
+		#cnv{
+			display:block;
+			flex:1;
+			width:100%;
+			min-height:170px;
+			background:transparent;
+		}
+
+		#breakdown{
+			max-height:0;
+			opacity:0;
+			overflow:hidden;
+			padding-top:0;
+			border-top:1px solid transparent;
+			transition:max-height 0.28s ease, opacity 0.2s ease, padding-top 0.28s ease, border-color 0.28s ease;
+		}
+
+		#cnvcontainer.showbd #breakdown{
+			max-height:260px;
+			opacity:1;
+			padding-top:16px;
+			border-top-color:rgba(255,255,255,0.08);
+		}
+
+		#breakdowntop{
+			display:flex;
+			align-items:flex-start;
+			justify-content:space-between;
+			gap:12px;
+			padding-bottom:12px;
+		}
+
+		#breakdowntitle{
+			color:var(--text-strong);
+			font-size:15px;
+			font-weight:600;
+		}
+
+		#breakdownsubtitle{
+			color:var(--text-muted);
+			font-size:12px;
+			padding-top:3px;
+		}
+
+		#breakdowninner{
+			display:flex;
+			flex-direction:column;
+			gap:8px;
+			max-height:180px;
+			padding:0 2px 14px 0;
+			overflow:auto;
+		}
+
+		.breakdownempty{
+			padding:14px 2px 4px;
+			color:var(--text-muted);
+			font-size:12px;
+		}
+
+		.breakdownrow{
+			position:relative;
+			display:grid;
+			grid-template-columns:minmax(0, 1fr) auto auto;
+			align-items:center;
+			gap:10px;
+			padding:11px 12px;
+			border-radius:16px;
+			border:1px solid rgba(255,255,255,0.05);
+			background:rgba(255,255,255,0.03);
+			overflow:hidden;
+		}
+
+		.breakdownbar{
+			position:absolute;
+			top:0;
+			left:0;
+			bottom:0;
+			background:linear-gradient(90deg, rgba(230,195,106,0.14), rgba(230,195,106,0.02));
+			pointer-events:none;
+		}
+
+		.breakdownmain,
+		.breakdownamount,
+		.breakdownview{
+			position:relative;
+			z-index:1;
+		}
+
+		.breakdownmain{
+			display:flex;
+			flex-direction:column;
+			gap:3px;
+			min-width:0;
+		}
+
+		.breakdownxp{
+			color:var(--text-strong);
+			font-family:"Bahnschrift","Segoe UI Variable Display",sans-serif;
+			font-size:16px;
+			font-variant-numeric:tabular-nums;
+			line-height:1;
+		}
+
+		.breakdownmass{
+			color:var(--text-muted);
+			font-size:11px;
+			letter-spacing:0.04em;
+		}
+
+		.breakdownamount{
+			color:var(--text-strong);
+			font-family:"Bahnschrift","Segoe UI Variable Display",sans-serif;
+			font-size:14px;
+			font-variant-numeric:tabular-nums;
+			white-space:nowrap;
+		}
+
+		.breakdownview{
+			width:14px;
+			height:14px;
+			background-image:url('viewicon.png');
+			cursor:pointer;
+			opacity:0.8;
+			transition:transform 0.18s ease, opacity 0.18s ease;
+		}
+
+		.breakdownview:hover{
+			opacity:1;
+			transform:scale(1.08);
+			background-position:0px -14px;
+		}
+
+		body[data-state="searching"] #xpoutput{color:var(--gold-soft);}
+		body[data-state="warning"] #xpoutput{color:#ffd2b2;}
+		body[data-state="alert"] #xpoutput{color:#ffd6c7;}
+
+		@media (max-width:560px){
+			#topbar{flex-direction:column;}
+			#toolbar{width:100%; justify-content:space-between;}
+			.tooltext{display:none;}
+			#summarybar{grid-template-columns:repeat(2, minmax(0, 1fr));}
+			#xpoutputinner{align-items:flex-start; flex-direction:column;}
+			#headerchips{justify-content:flex-start;}
+			#alertcopy{align-items:flex-start; flex-direction:column;}
+		}
+	</style>
+</head>
+<body class="nis" onload="start()" onresize="resize();">
+	<div id="appshell">
+		<div id="topbar">
+			<div id="brandblock">
+				<div id="eyebrow">Alt1 XP Tracker</div>
+				<div id="xpoutputinner" onclick="clickxp();">
+					<div id="skilllead">
+						<div id="xpskillicon" style="display:none;"></div>
+						<div id="skillcopy">
+							<div id="selectedskill">RuneMetrics Live</div>
+							<span id="xpoutput">0 xp/hr</span>
+						</div>
+					</div>
+					<div id="headerchips">
+						<span id="statuspill" class="panelpill searching">Scanning</span>
+						<span id="modepill" class="panelpill subtle">Fixed 10m</span>
+					</div>
+					<div id="xpdropdown"></div>
+				</div>
+			</div>
+			<div id="toolbar">
+				<div id="menubutton" class="toolbutton" onclick="showMenu();" title="Menu">
+					<span class="toolicon"></span>
+					<span class="tooltext">Menu</span>
+				</div>
+				<div id="infobutton" class="toolbutton" onclick="pagepopup('help_xpmeter',350,500);" title="Help">
+					<span class="toolicon"></span>
+					<span class="tooltext">Help</span>
+				</div>
+				<div id="breakbutton" class="toolbutton" onclick="togglebreak();" title="Show gain breakdown">
+					<span class="toolicon"></span>
+					<span class="tooltext">Breakdown</span>
+				</div>
+			</div>
+		</div>
+		<div id="summarybar">
+			<div class="summaryitem">
+				<span class="summarylabel">Window gain</span>
+				<span id="gainvalue" class="summaryvalue">0 xp</span>
+			</div>
+			<div class="summaryitem">
+				<span class="summarylabel">Session</span>
+				<span id="timer" onclick="clicktimer();" ondblclick="doubleclicktimer();" title="Click to toggle timing mode&#xA;Doubleclick to restart in fixed start mode">00:00</span>
+			</div>
+			<div class="summaryitem">
+				<span class="summarylabel">Alert</span>
+				<span id="alertstatus" class="summaryvalue">Never</span>
+			</div>
+			<div class="summaryitem">
+				<span class="summarylabel">Focus</span>
+				<span id="trackedxp" class="summaryvalue hidden">No focus</span>
+			</div>
+		</div>
+		<div id="alertdeck">
+			<div id="alertcopy">
+				<div id="alerttitle">AFK threshold</div>
+				<div id="alertcaption">Drag to tune the idle warning point.</div>
+			</div>
+			<div id="sliderlabels">
+				<span>20s</span>
+				<span>Never</span>
+			</div>
+			<div id="timerslidercontainer">
+				<div id="timerslider" onmousedown="timedragstart(event); return false;" title="Drag to set warning time">
+					<div id="timersliderinner"></div>
+				</div>
+			</div>
+		</div>
+		<div id="workspace">
+			<div id="cnvcontainer">
+				<div id="graphhead">
+					<div id="graphkicker">Session graph</div>
+					<div id="graphsubtitle">XP pulses across the active window.</div>
+				</div>
+				<canvas id="cnv"></canvas>
+				<div id="breakdown">
+					<div id="breakdowntop">
+						<div>
+							<div id="breakdowntitle">Action breakdown</div>
+							<div id="breakdownsubtitle">Most common XP drops in the current window.</div>
+						</div>
+						<div id="breakdowncancel" class="toolbutton hidden" onclick="trackxp(0);" title="Remove tracker">
+							<span class="toolicon"></span>
+							<span class="tooltext">Clear focus</span>
+						</div>
+					</div>
+					<div id="breakdowninner"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="audio" style="display:none">
+		<audio id="alerter" preload="auto"><source src="alarm1.wav" type="audio/wav"></audio>
+	</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

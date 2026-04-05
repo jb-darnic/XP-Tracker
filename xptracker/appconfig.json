@@ -1,0 +1,16 @@
+{
+  "appName": "XP Tracker",
+  "description": "Track RuneMetrics XP in real time with a live graph and XP drop breakdowns.",
+  "appUrl": "./",
+  "configUrl": "./appconfig.json",
+  "iconUrl": "./infoicon.png",
+  "defaultWidth": 420,
+  "defaultHeight": 520,
+  "minWidth": 320,
+  "minHeight": 360,
+  "maxWidth": 1000,
+  "maxHeight": 1200,
+  "requestHandlers": [],
+  "activators": [],
+  "permissions": "pixel,overlay"
+}

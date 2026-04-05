@@ -1,0 +1,3 @@
+if(typeof __WEBPACK_EXTERNAL_MODULE__840__ === 'undefined') { var e = new Error("Cannot find module 'canvas'"); e.code = 'MODULE_NOT_FOUND'; throw e; }
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__840__;
