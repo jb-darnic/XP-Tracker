@@ -30,10 +30,11 @@
 		}
 
 		*{box-sizing:border-box;}
-		html, body{margin:0; width:100%; height:100%; overflow:hidden;}
+		html, body{margin:0; width:100%; height:100%;}
 		body{
 			font-family:"Segoe UI Variable Text","Trebuchet MS",sans-serif;
 			color:var(--text-main);
+			overflow:auto;
 			background:
 				radial-gradient(circle at top left, rgba(230,195,106,0.16), transparent 32%),
 				radial-gradient(circle at top right, rgba(117,207,200,0.11), transparent 28%),
@@ -55,7 +56,7 @@
 			display:flex;
 			flex-direction:column;
 			gap:10px;
-			height:100%;
+			min-height:100%;
 			padding:12px;
 			animation:panel-enter 0.45s ease-out;
 		}
@@ -465,6 +466,7 @@
 			display:flex;
 			flex:1;
 			min-height:0;
+			min-height:220px;
 		}
 
 		#cnvcontainer{
@@ -671,7 +673,7 @@
 					<span class="toolicon"></span>
 					<span class="tooltext">Menu</span>
 				</div>
-				<div id="infobutton" class="toolbutton" onclick="pagepopup('help_xpmeter',350,500);" title="Help">
+				<div id="infobutton" class="toolbutton" onclick="showHelp();" title="Help">
 					<span class="toolicon"></span>
 					<span class="tooltext">Help</span>
 				</div>

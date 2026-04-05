@@ -31,6 +31,8 @@ var tooltiptimeout = null;
 var tooltiptime = 0;
 var tooltipout = false;
 var timedragging = false;
+var lastwindoww = 0;
+var lastwindowh = 0;
 
 //settings
 var mode = localStorage.xpmeter_mode == "start" ? "start" : "fixed";// fixed || start
@@ -108,12 +110,22 @@ function syncPanelFocus(text) {
 
 function start() {
 	a1lib.identifyUrl("./appconfig.json");
-	resize();
 	cnv = elid("cnv");
 	ctx = cnv.getContext("2d");
 	syncPanelChrome();
 	syncStatusState();
 	drawGraphEmpty("Scanning for the RuneMetrics panel...");
+	lastwindoww = window.innerWidth;
+	lastwindowh = window.innerHeight;
+	window.addEventListener("resize", resize);
+	setInterval(function () {
+		if (window.innerWidth != lastwindoww || window.innerHeight != lastwindowh) {
+			lastwindoww = window.innerWidth;
+			lastwindowh = window.innerHeight;
+			resize();
+		}
+	}, 300);
+	resize();
 
 	startFindCounter();
 	setInterval(tick, 1000);
@@ -414,6 +426,8 @@ function setcounter(id) {
 }
 
 function resize() {
+	lastwindoww = window.innerWidth;
+	lastwindowh = window.innerHeight;
 	var dropdown = maybeel("xpdropdown");
 	if (dropdown) {
 		var bounds = elid("xpoutputinner").getBoundingClientRect();
@@ -613,8 +627,19 @@ function doubleclicktimer() {
 	drawgraph();
 }
 
+function showHelp() {
+	var box = promptbox2({ title: "XP Tracker help", width: Math.min(380, Math.max(300, window.innerWidth - 24)), style: "fakepopup" }, [
+		{ t: "text", text: "1. Open the RuneMetrics XP panel in RuneScape so Alt1 can read the skill rows and XP values." },
+		{ t: "text", text: "2. If scanning fails, click Menu and use 'Search interface' while the panel is visible on screen." },
+		{ t: "text", text: "3. The timer toggles between a fixed sample window and a session-since-start view." },
+		{ t: "text", text: "4. Drag the AFK threshold slider to control when the idle warning tooltip and sound trigger." },
+		{ t: "text", text: "5. Open Breakdown to inspect common XP drops and click one to focus that value." },
+		{ t: "button", text: "Close", onclick: function () { box.frame.close(); } }
+	]);
+}
+
 function showMenu() {
-	if (menubox) { menubox.frame.closefunc(); menubox = null; return;}
+	if (menubox) { menubox.frame.close(); menubox = null; return;}
 
 	var skillopts = eldiv({style:"min-height:70px; overflow:hidden;"});
 	var pausedraw = false;
@@ -702,14 +727,18 @@ function showMenu() {
 		{ t: "bool:alertrepeat", v: repeatalarm, onchange: function (v) { setalarmrepeat(null, box.alertrepeat.getValue()); }, text: "Repeat alarm" }
 	];
 
-	var box = promptbox2({ title:"Settings",style: "popup",width:300 ,stylesheets:["settingsstyle.css"]}, buttons);
+	var box = promptbox2({
+		title:"Settings",
+		style: "fakepopup",
+		width:Math.min(340, Math.max(300, window.innerWidth - 24)),
+		onclose: function () { menubox = null; }
+	}, buttons);
 	box.time.setValue(mode);
 	box.time.onchange = function (v) {
 		box.fixedmode.setLocked(v != "fixed");
 		box.startmode.setLocked(v != "start");
 		setMode(v);
 	}
-	box.frame.window.onunload = function () { menubox = null };
 
 	drawalert();
 
@@ -792,11 +821,10 @@ function timedragend() {
 }
 
 function findcounterError() {
-	var box = promptbox2({ title: "Xpmeter error", width: 300, style: "popup" }, [
-		{ t: "custom", dom: eldiv(":img", { src: absoluteUrl("exampleimg.png"), style: "height:136px; width:107px; float:right; margin:3px;" }) },
+	var box = promptbox2({ title: "Xpmeter error", width: Math.min(340, Math.max(300, window.innerWidth - 24)), style: "fakepopup" }, [
 		{ t: "text", text: "Alt1 could not find the runemetrics interface on your screen. Make sure you have the xp counter interface open in-game, it should look similair to this image" },
 		{ t: "h/11" },
-		{ t: "button", text: "More info", onclick: function () { pagepopup('help_afkscape_xpcounter', 350, 500); box.frame.close(); } },
+		{ t: "button", text: "Help", onclick: function () { box.frame.close(); showHelp(); } },
 		{ t: "button", text: "Try again", onclick: function () { startFindCounter(); box.frame.close(); } }
 	]);
 	//TODO merge the afkwarden page with this one?
@@ -804,7 +832,7 @@ function findcounterError() {
 
 function xpcounterRoundError() {
 	if (localStorage.xpmeter_roundwarning=="true") { return;}
-	var box = promptbox2({ title: "Xpmeter info", width: 300, style: "popup" }, [
+	var box = promptbox2({ title: "Xpmeter info", width: Math.min(340, Math.max(300, window.innerWidth - 24)), style: "fakepopup" }, [
 		{ t: "text", text: "Your RuneMetrics interface is set to round xp to K or M. This settings makes xp tracking inaccurate. You can turn this settings off in the RuneMetrics settings under the 'Metrics' tab, there is a toggle to 'show precise values'." },
 		{ t: "h/11" },
 		{ t: "button", text: "Close", onclick: function () { box.frame.close(); } },
